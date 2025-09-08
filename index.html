@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schemat och avvikels</title>
+     <!-- jQuery & jQuery UI -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <!-- Timepicker Addon -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.min.js"></script>
+    <style>
+     /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Navbar styles */
+    .navbar {
+      background-color: black;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    /* Hamburger menu toggle */
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      width: 30px;
+      height: 24px;
+      justify-content: space-between;
+      z-index: 1001; /* Stay above other elements */
+    }
+
+    .menu-toggle span {
+      width: 100%;
+      height: 3px;
+      background-color: white;
+      transition: all 0.3s ease;
+      border-radius: 2px;
+    }
+
+    /* Animation for active (cross) state */
+    .menu-toggle.active span:nth-child(1) {
+      transform: rotate(-45deg) translate(-5px, 6px);
+    }
+    .menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .menu-toggle.active span:nth-child(3) {
+      transform: rotate(45deg) translate(-5px, -6px);
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 1rem;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Dropdown styles */
+    .nav-links > li {
+      position: relative;
+    }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: black;
+      list-style: none;
+      min-width: 160px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1001;
+    }
+
+    .dropdown li a {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: white;
+    }
+
+    .dropdown li a:hover {
+      background-color: #333;
+    }
+
+    /* Show dropdown on hover (desktop) */
+    .nav-links > li:hover .dropdown {
+      display: block;
+    }
+
+    /* Mobile styles */
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: flex; /* Show only on mobile */
+      }
+
+      .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        background-color: black;
+        padding: 0;
+        margin: 0;
+        display: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .nav-links li {
+        width: 100%;
+        border-top: 1px solid #333;
+      }
+
+      .nav-links li a {
+        padding: 1rem;
+        display: block;
+      }
+
+      /* Hide dropdowns by default on mobile */
+      .dropdown {
+        position: static; /* No absolute positioning */
+        display: none;
+        padding-left: 1rem;
+        background-color: #111;
+      }
+
+      /* Show dropdown when parent is clicked (optional JS enhancement) */
+      .nav-links li.active .dropdown {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    /* Container & Sections */
+    .container {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section {
+      display: none;
+      padding: 1rem;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .section h2 {
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    #output {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+    }
+
+    /* Forms */
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .input-wrapper {
+    position: relative;
+    width: 100%; /* or 100%, depending on your layout */
+  }
+
+  .input-wrapper .prefix-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 25%;
+    background:#0074D9;
+    color: White;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    font-size:1.1rem;
+    border-right: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  .input-wrapper input {
+    width: 100%;
+    padding-left: 25%; /* matches the label width */
+    box-sizing: border-box;
+    height: 36px;
+    font-size:1.1rem;
+     background:#0074D9;
+    color: White;
+    text-align: center;
+    border-radius: 8px;
+  
+  }
+  
+    select {
+        padding: 10px;
+        border: 1px solid #ccc;
+       
+        font-size: 1.1rem;
+        text-align: center;
+        background-color: #0074D9;
+        color: #fff;
+       width: 100%;
+       
+         border-radius: 8px;
+    }
+    ::placeholder {
+        color: white
+    }
+   
+ 
+
+    .bat {
+        padding: 10px 20px;
+        background-color: #101010;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        width: 100%;
+    }
+
+    .bat:hover {
+        background-color: #005fa3;
+    }
+
+    
+
+    /* Footer */
+    #footer {
+        margin-top: 40px;
+        padding: 20px;
+        text-align: center;
+        font-size: 1.1rem;
+        color: #010e19;
+        background-color: white;
+        width: 92%;
+        margin-left: 4%;
+        border-radius: 8px;
+    }
+     /* Main Content Styles */
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f4f4; 
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    
+     h2 { color: #333; margin-bottom: 20px; }
+        form { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 10px;width: 100%;align-items: center; }
+        
+       
+        
+        #output div { background: #fff; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        #output button { background-color: #f44336; margin-left: 10px; padding: 5px 10px; }
+        #output button:hover { background-color: #da190b; }
+        .ui-timepicker-wrapper { z-index: 9999 !important; }
+  
+    </style>
+</head>
+<body>
+   <nav class="navbar">
+                            <div class="logo">Mitt Arla</div>
+                            <div class="menu-toggle" onclick="toggleMenu()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            </div>
+                            <ul class="nav-links" id="navLinks">
+                            <li onclick="toggleDropdown(this)">
+                                <a href="#">Schema</a>
+                                <ul class="dropdown">
+                                <li><a href="#" onclick="showSection('Schemat-visa3')">3 Skift</a></li>
+                                <li><a href="#" onclick="showSection('Schemat-visan')">Natt Skift</a></li>
+                                </ul>
+                            </li>
+                            <li onclick="toggleDropdown(this)">
+                                <a href="#">Avvikelse</a>
+                                <ul class="dropdown">
+                                <li><a href="#" onclick="showSection('Schemat-avv')">Lägg avvikelse</a></li>
+                                <li><a href="#" onclick="showSection('entries')">Visa avvikelse</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showSection('about')">Om appen</a>
+                            </li>
+                            </ul>
+                </nav>
+
+<div class="container">
+   
+    
+
+    <div id="Schemat-visa3" class="section">
+                            <h2>3 Skift</h2>
+                                    <form id="form1">
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Datum</span>
+                                                <input type="text" readonly="readonly" id="datum" placeholder="Klick och välj datum">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Dag</span>
+                                                <input type="text" readonly="readonly" id="dag">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Mats</span>
+                                                <input type="text" readonly="readonly" id="schg1">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Mikael</span>
+                                                <input type="text" readonly="readonly" id="schg2">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Vakan</span>
+                                                <input type="text" readonly="readonly" id="schg3">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Dalyana</span>
+                                                <input type="text" readonly="readonly" id="schg4">
+                                            </div>
+                                        </div>
+                                    </form>
+                </div>
+                <div id="Schemat-visan" class="section">
+                            <h2>Natt Skift</h2>
+                                    <form id="form3">
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Datum</span>
+                                                <input type="text" readonly="readonly" id="datumn" placeholder="Klick och välj datum">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Dag</span>
+                                                <input type="text" readonly="readonly" id="dagn">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Jörgen</span>
+                                                <input type="text" readonly="readonly" id="schng1">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Ismael</span>
+                                                <input type="text" readonly="readonly" id="schng2">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Viktor</span>
+                                                <input type="text" readonly="readonly" id="schng3">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-wrapper">
+                                                <span class="prefix-label">Tony</span>
+                                                <input type="text" readonly="readonly" id="schng4">
+                                            </div>
+                                        </div>
+                                    </form>
+                </div>
+    <div id="Schemat-avv" class="section">
+        <h2>Lägg ny avvikelse</h2>
+            <form onsubmit="saveForm2(event)">
+                 <div class="form-group">
+                    <div class="input-wrapper">
+                        <select aria-label="avv" id="avv">
+                            <option value="">Välj Avvikelse</option>
+                            <option value="Övertid">Övertid</option>
+                            <option value="Semester">Semester</option>
+                            <option value="Komp">Komp</option>
+                            <option value="Sjuk">Sjuk</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="text" readonly="readonly" id="datum1" placeholder="Välj datum" autocomplete="off" style="padding: 0%;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="text" readonly="readonly" id="starttime" name="clock_start" placeholder="Välj Start tid" autocomplete="off" style="padding: 0%;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="text" readonly="readonly" id="endtime" name="clock_end" placeholder="Välj Slut tid" autocomplete="off" style="padding: 0%;">  
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <button class="bat" type="submit">Spara</button>
+                    </div>
+                </div>
+               
+            </form>
+    </div>
+             <div id="entries" class="section">
+                 <h2>Sparade Avvikelse</h2>
+                 <div id="output"></div>
+             </div>
+        
+       <div id="about" class="section"> 
+          <h2>Om</h2> 
+          <form>
+              <div class="about"> 
+                 <p>Den här Schemahanteringsapplikationen hjälper dig att:</p> 
+                  <ul> 
+                    <li><strong>Schemasökning:</strong> Se ditt arbetsschema baserat på en 28-dagars rotationscykel med start från och med den 1 september 2025</li> 
+                    <li><strong>Lägg till post:</strong> Spela in arbetspass med datum, start-/sluttider och beskrivningar</li> 
+                    <li><strong>Visa poster:</strong> Granska och hantera dina sparade arbetsposter</li> 
+                    </ul> 
+                    <p>All data lagras lokalt i din webbläsare och kommer att finnas kvar mellan sessionerna.</p> 
+              </div> 
+            </form>
+       </div>
+    
+</div>
+<script>
+
+  const G1 = ['Ledigt', 'Ledigt', '21:30 - 07:06', '21:30 - 07:06', '21:30 - 07:06', '21:18 - 07:06', '21:18 - 07:06',
+            'Ledigt', 'Ledigt', 'Ledigt', '06:00 - 15:18', '06:00 - 14:18', '21:18 - 07:06', '21:18 - 07:06',
+            '21:30 - 07:06', '21:30 - 07:06', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt',
+            '06:00 - 15:18', '06:00 - 15:48', '06:00 - 15:18', '06:00 - 15:18', '06:00 - 14:18', 'Ledigt', 'Ledigt'];
+
+            const G4 = ['06:00 - 15:18', '06:00 - 15:48', '06:00 - 15:18',  '06:00 - 15:18', '06:00 - 14:18', 'Ledigt', 'Ledigt',
+            'Ledigt', 'Ledigt', '21:30 - 07:06', '21:30 - 07:06', '21:30 - 07:06', '21:18 - 07:06', '21:18 - 07:06',
+            'Ledigt', 'Ledigt', 'Ledigt', '06:00 - 15:18', '06:00 - 14:18', '21:18 - 07:06', '21:18 - 07:06',
+	    '21:30 - 07:06', '21:30 - 07:06', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt'];
+
+         const G3 = ['21:30 - 07:06', '21:30 - 07:06', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt',
+            '06:00 - 15:18', '06:00 - 15:48', '06:00 - 15:18', '06:00 - 15:18', '06:00 - 14:18', 'Ledigt', 'Ledigt',
+            'Ledigt', 'Ledigt', '21:30 - 07:06', '21:30 - 07:06', '21:30 - 07:06', '21:18 - 07:06', '21:18 - 07:06',
+            'Ledigt', 'Ledigt', 'Ledigt', '06:00 - 15:18', '06:00 - 14:18', '21:18 - 07:06', '21:18 - 07:06'];
+
+            const G2 = ['Ledigt', 'Ledigt', 'Ledigt', '06:00 - 15:18', '06:00 - 14:18', '21:18 - 07:06', '21:18 - 07:06',
+            '21:30 - 07:06', '21:30 - 07:06', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt', 'Ledigt',
+            '06:00 - 15:18', '06:00 - 15:48', '06:00 - 15:18', '06:00 - 15:18',  '06:00 - 14:18', 'Ledigt', 'Ledigt',
+            'Ledigt', 'Ledigt', '21:30 - 07:06', '21:30 - 07:06', '21:30 - 07:06', '21:18 - 07:06', '21:18 - 07:06'];
+
+         const Gn4 = [
+        
+        'Ledigt','07:00 - 15:48','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06',
+        'Ledigt', 'Ledigt','Ledigt','Ledigt','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06',
+        '21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt', 'Ledigt','Ledigt','21:30 - 07:06',
+        '21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt','Ledigt'
+        ];
+ const Gn1 = [
+        
+        
+        'Ledigt', 'Ledigt','Ledigt','Ledigt','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06',
+        '21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt', 'Ledigt','Ledigt','21:30 - 07:06',
+        '21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt','Ledigt',
+        'Ledigt','07:00 - 15:48','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06'
+        ];
+const Gn2 = [
+        '21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt', 'Ledigt','Ledigt','21:30 - 07:06',
+        '21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt','Ledigt',
+        'Ledigt','07:00 - 15:48','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06',
+'Ledigt', 'Ledigt','Ledigt','Ledigt','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06'
+        ];
+const Gn3 = [
+        '21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt','Ledigt',
+        'Ledigt','07:00 - 15:48','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06',
+'Ledigt', 'Ledigt','Ledigt','Ledigt','21:30 - 07:06','21:30 - 07:06','21:30 - 07:06',
+'21:30 - 07:06','21:30 - 07:06','Ledigt','Ledigt', 'Ledigt','Ledigt','21:30 - 07:06'
+        ];
+
+
+        $(document).ready(function() {
+            
+
+            // Initialize datepickers
+            $('#datumn').datepicker({
+                dateFormat: 'yy-mm-dd',
+                monthNames: ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'],
+      monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'],
+      dayNamesShort: ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'],
+      dayNames: ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'],
+      dayNamesMin: ['Sö', 'Må', 'Ti', 'On', 'To', 'Fr', 'Lö'],
+      weekHeader: 'Не',
+      dateFormat: 'yy-mm-dd',
+      firstDay: 1,
+                minDate: new Date(2025, 8, 1),
+                onSelect: function() {
+                    updateForm3();
+                }
+            });
+              // Initialize datepickers
+            $('#datum').datepicker({
+                dateFormat: 'yy-mm-dd',
+                monthNames: ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'],
+      monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'],
+      dayNamesShort: ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'],
+      dayNames: ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'],
+      dayNamesMin: ['Sö', 'Må', 'Ti', 'On', 'To', 'Fr', 'Lö'],
+      weekHeader: 'Не',
+      dateFormat: 'yy-mm-dd',
+      firstDay: 1,
+                minDate: new Date(2025, 8, 1),
+                onSelect: function() {
+                    updateForm1();
+                }
+            });
+
+            $('#datum1').datepicker({
+                dateFormat: 'yy-mm-dd',
+                monthNames: ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'],
+      monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'],
+      dayNamesShort: ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'],
+      dayNames: ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'],
+      dayNamesMin: ['Sö', 'Må', 'Ti', 'On', 'To', 'Fr', 'Lö'],
+      weekHeader: 'Не',
+      dateFormat: 'yy-mm-dd',
+      firstDay: 1,
+                minDate: new Date(2025, 8, 1)
+            });
+
+            // Initialize timepickers using the correct addon method
+            $('#starttime').timepicker({
+                timeOnlyTitle: 'Välj klockslag',
+                timeText: 'Tid',
+      hourText: 'Timma',
+      minuteText: 'Minut',
+      secondText: 'Sekund',
+      millisecText: 'Millisekund',
+      timezoneText: 'Tidszon',
+      currentText: 'Nu',
+      closeText: 'Stäng',
+      timeFormat: 'HH:mm',
+            });
+
+            $('#endtime').timepicker({
+                timeOnlyTitle: 'Välj klockslag',
+                timeText: 'Tid',
+      hourText: 'Timma',
+      minuteText: 'Minut',
+      secondText: 'Sekund',
+      millisecText: 'Millisekund',
+      timezoneText: 'Tidszon',
+      currentText: 'Nu',
+      closeText: 'Stäng',
+      timeFormat: 'HH:mm',
+            });
+
+            displayEntries();
+            
+          
+           
+        });
+        function updateForm3() {
+            const datum = $('#datumn').val();
+            if (!datum) return;
+
+            const selectedDate = new Date(datum);
+            const dayNames = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            const dayName = dayNames[selectedDate.getDay()];
+
+            const weekNumber = getISOWeek(selectedDate);
+
+            $('#dagn').val(`${dayName} - Week ${weekNumber}`);
+
+            const startDate = new Date('2025-09-01');
+            const diffTime = Math.abs(selectedDate - startDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const index = diffDays % 28;
+           $('#schng1').val(Gn1[index] || 'N/A');
+            $('#schng2').val(Gn2[index] || 'N/A');
+            $('#schng3').val(Gn3[index] || 'N/A');
+            $('#schng4').val(Gn4[index] || 'N/A');
+           
+        }
+        
+       
+
+        function updateForm1() {
+            const datum = $('#datum').val();
+            if (!datum) return;
+
+            const selectedDate = new Date(datum);
+            const dayNames = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            const dayName = dayNames[selectedDate.getDay()];
+
+            const weekNumber = getISOWeek(selectedDate);
+
+            $('#dag').val(`${dayName} - Week ${weekNumber}`);
+
+            const startDate = new Date('2025-09-01');
+            const diffTime = Math.abs(selectedDate - startDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const index = diffDays % 28;
+            $('#schg1').val(G1[index] || 'N/A');
+            $('#schg2').val(G2[index] || 'N/A');
+            $('#schg3').val(G3[index] || 'N/A');
+            $('#schg4').val(G4[index] || 'N/A');
+           
+            
+        }
+
+        function getISOWeek(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        function saveForm2(event) {
+            event.preventDefault();
+            const datum1 = $('#datum1').val();
+            const starttime = $('#starttime').val();
+            const endtime = $('#endtime').val();
+            const avv = $('#avv').val();
+
+            if (!datum1 || !starttime || !endtime) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            const [startH, startM] = starttime.split(':').map(Number);
+            const [endH, endM] = endtime.split(':').map(Number);
+            const startTotal = startH + startM / 60;
+            const endTotal = endH + endM / 60;
+            let diff = endTotal - startTotal;
+            if (diff < 0) diff += 24;
+            diff = diff.toFixed(2);
+
+            const entry = `${datum1} | ${diff} hours | ${avv}`;
+
+            let entries = JSON.parse(localStorage.getItem('entries')) || [];
+            entries.push(entry);
+            localStorage.setItem('entries', JSON.stringify(entries));
+
+            displayEntries();
+            
+            $('#datum1').val('');
+            $('#starttime').val('');
+            $('#endtime').val('');
+            $('#avv').val('');
+        }
+
+        function displayEntries() {
+            const entries = JSON.parse(localStorage.getItem('entries')) || [];
+            const outputDiv = $('#output');
+            outputDiv.empty();
+            entries.forEach((entry, index) => {
+                const row = $('<div>').text(entry);
+                const deleteBtn = $('<button>').text('x').click(() => deleteEntry(index));
+                row.append(deleteBtn);
+                outputDiv.append(row);
+            });
+        }
+
+         function deleteEntry(index) {
+            let entries = JSON.parse(localStorage.getItem('entries')) || [];
+            entries.splice(index, 1);
+            localStorage.setItem('entries', JSON.stringify(entries));
+            displayEntries();
+        }
+         // Toggle mobile menu
+    function toggleMenu() {
+      const navLinks = document.getElementById("navLinks");
+      const menuToggle = document.querySelector(".menu-toggle");
+      navLinks.classList.toggle("active");
+      menuToggle.classList.toggle("active"); // Animate hamburger to X
+    }
+
+    // Optional: Toggle dropdowns on mobile (tap to open)
+    function toggleDropdown(element) {
+      if (window.innerWidth <= 768) {
+        element.classList.toggle("active");
+      }
+    }
+
+    // Show specific section
+    function showSection(id) {
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.classList.remove("active");
+      });
+      const element = document.getElementById(id);
+      if (element) {
+        element.classList.add("active");
+      }
+
+      // Close mobile menu after selection
+      document.getElementById("navLinks").classList.remove("active");
+      document.querySelector(".menu-toggle").classList.remove("active");
+    }
+
+    // Show default section on load
+    window.onload = function () {
+      showSection("sch3");
+    };
+
+    // Close mobile menu when window is resized to desktop
+    window.onresize = function () {
+      if (window.innerWidth > 768) {
+        document.getElementById("navLinks").classList.remove("active");
+        document.querySelector(".menu-toggle").classList.remove("active");
+      }
+    };
+
+</script>
+</body>
+</html>
